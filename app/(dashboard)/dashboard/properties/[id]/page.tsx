@@ -22,7 +22,7 @@ export default async function PropertyDetailPage({ params }: Props) {
 
   const sessionUser = sessionUserResult.data;
 
-  const result = await getPropertyDetail(id, sessionUser.id);
+  const result = await getPropertyDetail(id);
 
   if (!result.success) {
     // NOT_FOUND → 404.

@@ -13,9 +13,7 @@ import { TaskWithMeta, TaskDetail } from "@/types/index";
 // real operational model (a cleaner only sees their own work order list).
 // Admins see all tasks across all properties. Hosts see tasks on their properties.
 // Scoping is enforced here — pages receive pre-filtered data, no role checks in UI.
-export async function getTasks(
-  userId: string,
-): Promise<Result<TaskWithMeta[]>> {
+export async function getTasks(): Promise<Result<TaskWithMeta[]>> {
   try {
     const userResult = await getSessionUser();
     if (!userResult.success)
@@ -27,9 +25,9 @@ export async function getTasks(
       user.role === Role.ADMIN
         ? {}
         : user.role === Role.OPERATOR
-          ? { assignedToId: userId }
+          ? { assignedToId: user.id }
           : // Host: tasks on any property they own
-            { property: { createdById: userId } };
+            { property: { createdById: user.id } };
 
     const tasks = await prisma.task.findMany({
       where,
@@ -59,7 +57,6 @@ export async function getTasks(
 // Host sees any task on their property — they need visibility into all work on their unit.
 export async function getTaskDetail(
   taskId: string,
-  userId: string,
 ): Promise<Result<TaskDetail>> {
   try {
     const userResult = await getSessionUser();
@@ -86,7 +83,7 @@ export async function getTaskDetail(
     if (!task) return err({ code: "NOT_FOUND", message: "Task not found" });
 
     // Operator: strictly assigned only — direct URL enumeration is blocked
-    if (user.role === Role.OPERATOR && task.assignedToId !== userId) {
+    if (user.role === Role.OPERATOR && task.assignedToId !== user.id) {
       return err({ code: "FORBIDDEN", message: "Access denied" });
     }
 
@@ -96,7 +93,7 @@ export async function getTaskDetail(
         where: { id: task.propertyId },
         select: { createdById: true },
       });
-      if (property?.createdById !== userId) {
+      if (property?.createdById !== user.id) {
         return err({ code: "FORBIDDEN", message: "Access denied" });
       }
     }
@@ -113,15 +110,12 @@ export async function getTaskDetail(
 }
 
 // Creates a task. Admin only.
-export async function createTask(
-  data: {
-    title: string;
-    description?: string | undefined;
-    propertyId: string;
-    assignedToId?: string | undefined;
-  },
-  userId: string,
-): Promise<Result<{ id: string }>> {
+export async function createTask(data: {
+  title: string;
+  description?: string | undefined;
+  propertyId: string;
+  assignedToId?: string | undefined;
+}): Promise<Result<{ id: string }>> {
   try {
     const userResult = await getSessionUser();
     if (!userResult.success)
@@ -143,12 +137,25 @@ export async function createTask(
     if (!property)
       return err({ code: "NOT_FOUND", message: "Property not found" });
 
+    if (data.assignedToId) {
+      const assignee = await prisma.user.findUnique({
+        where: { id: data.assignedToId },
+        select: { role: true },
+      });
+      if (!assignee || assignee.role !== Role.OPERATOR) {
+        return err({
+          code: "FORBIDDEN",
+          message: "Assignee must be an existing Operator",
+        });
+      }
+    }
+
     const task = await prisma.task.create({
       data: {
         title: data.title,
         description: data.description ?? null,
         propertyId: data.propertyId,
-        createdById: userId,
+        createdById: user.id,
         assignedToId: data.assignedToId ?? null,
         status: TaskStatus.PENDING,
       },
@@ -158,7 +165,7 @@ export async function createTask(
       action: AuditAction.TASK_CREATED,
       entityType: "task",
       entityId: task.id,
-      userId,
+      userId: user.id,
       before: null,
       after: {
         title: task.title,
@@ -185,7 +192,6 @@ export async function createTask(
 export async function transitionTaskStatus(
   taskId: string,
   newStatus: TaskStatus,
-  userId: string,
 ): Promise<Result<{ status: TaskStatus }>> {
   try {
     const userResult = await getSessionUser();
@@ -207,7 +213,7 @@ export async function transitionTaskStatus(
 
     // Operator must be assigned to transition — prevents unassigned Operators from
     // claiming or closing someone else's task via direct API call
-    if (user.role === Role.OPERATOR && task.assignedToId !== userId) {
+    if (user.role === Role.OPERATOR && task.assignedToId !== user.id) {
       return err({
         code: "FORBIDDEN",
         message: "You are not assigned to this task",
@@ -216,17 +222,29 @@ export async function transitionTaskStatus(
 
     const previousStatus = task.status;
 
-    const updated = await prisma.task.update({
-      where: { id: taskId },
+    const updateResult = await prisma.task.updateMany({
+      where: {
+        id: taskId,
+        status: previousStatus,
+        ...(user.role === Role.OPERATOR ? { assignedToId: user.id } : {}),
+      },
       data: { status: newStatus },
     });
+    if (updateResult.count !== 1) {
+      return err({
+        code: "FORBIDDEN",
+        message: "Task changed during transition. Please retry.",
+      });
+    }
+
+    const updated = { status: newStatus };
 
     // Audit: before/after captures full transition path for the log table
     await writeAuditLog({
       action: AuditAction.TASK_STATUS_CHANGED,
       entityType: "task",
       entityId: taskId,
-      userId,
+      userId: user.id,
       before: { status: previousStatus },
       after: { status: newStatus },
       metadata: { transition: `${previousStatus} → ${newStatus}` },

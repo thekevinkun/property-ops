@@ -23,7 +23,7 @@ export default async function NewTaskPage({ searchParams }: Props) {
   if (sessionUser.role !== Role.ADMIN) redirect("/unauthorized");
 
   const [propsResult, opsResult] = await Promise.all([
-    getProperties(sessionUser.id),
+    getProperties(),
     getOperators(),
   ]);
 

@@ -36,6 +36,8 @@ type Props = {
   defaultPropertyId?: string | undefined;
 };
 
+const UNASSIGNED_VALUE = "unassigned";
+
 const TaskForm = ({ properties, operators, defaultPropertyId }: Props) => {
   const router = useRouter();
 
@@ -58,20 +60,32 @@ const TaskForm = ({ properties, operators, defaultPropertyId }: Props) => {
     const formData = new FormData(form);
 
     formData.set("propertyId", propertyId);
-    formData.set("assignedToId", assignedToId);
 
-    const result = await createTaskAction(formData);
+    const normalizedAssignedToId =
+      assignedToId === UNASSIGNED_VALUE ? "" : assignedToId;
 
-    setPending(false);
-
-    if (!result.success) {
-      setError(result.error);
-      return;
+    if (normalizedAssignedToId) {
+      formData.set("assignedToId", normalizedAssignedToId);
+    } else {
+      formData.delete("assignedToId");
     }
 
-    // Navigate to task list on success — form is typically in a dialog/sheet
-    router.push("/dashboard/tasks");
-    router.refresh();
+    try {
+      const result = await createTaskAction(formData);
+
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+
+      // Navigate to task list on success — form is typically in a dialog/sheet
+      router.push("/dashboard/tasks");
+      router.refresh();
+    } catch {
+      setError("Unable to create task. Please try again.");
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
@@ -154,7 +168,7 @@ const TaskForm = ({ properties, operators, defaultPropertyId }: Props) => {
           </SelectTrigger>
 
           <SelectContent>
-            <SelectItem value="unassigned">Unassigned</SelectItem>
+            <SelectItem value={UNASSIGNED_VALUE}>Unassigned</SelectItem>
 
             {operators.map((op) => (
               <SelectItem key={op.id} value={op.id}>

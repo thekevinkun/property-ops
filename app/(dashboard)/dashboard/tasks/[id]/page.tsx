@@ -20,7 +20,7 @@ export default async function TaskDetailPage({ params }: Props) {
 
   const sessionUser = sessionUserResult.data;
 
-  const result = await getTaskDetail(id, sessionUser.id);
+  const result = await getTaskDetail(id);
 
   if (!result.success) {
     if (

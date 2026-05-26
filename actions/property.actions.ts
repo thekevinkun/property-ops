@@ -38,7 +38,7 @@ export async function createPropertyAction(
     return { success: false, error: message };
   }
 
-  const result = await createProperty(parsed.data, user.id);
+  const result = await createProperty(parsed.data);
 
   if (!result.success) return { success: false, error: result.error.message };
 

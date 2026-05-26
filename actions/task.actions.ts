@@ -41,7 +41,7 @@ export async function createTaskAction(
     return { success: false, error: message };
   }
 
-  const result = await createTask(parsed.data, user.id);
+  const result = await createTask(parsed.data);
 
   if (!result.success) return { success: false, error: result.error.message };
 
@@ -69,7 +69,7 @@ export async function transitionTaskAction(
     return { success: false, error: "Invalid status" };
   }
 
-  const result = await transitionTaskStatus(taskId, newStatus, user.id);
+  const result = await transitionTaskStatus(taskId, newStatus);
 
   if (!result.success) return { success: false, error: result.error.message };
 

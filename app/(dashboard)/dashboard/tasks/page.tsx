@@ -27,7 +27,7 @@ export default async function TasksPage({ searchParams }: Props) {
 
   const sessionUser = sessionUserResult.data;
 
-  const tasksResult = await getTasks(sessionUser.id);
+  const tasksResult = await getTasks();
 
   if (!tasksResult.success) {
     return (
@@ -58,7 +58,7 @@ export default async function TasksPage({ searchParams }: Props) {
 
   if (isAdmin) {
     const [propsResult, opsResult] = await Promise.all([
-      getProperties(sessionUser.id),
+      getProperties(),
       getOperators(),
     ]);
 

@@ -12,21 +12,20 @@ import { PropertyWithMeta, PropertyDetail } from "@/types/index";
 // Operators see no properties in the list — they navigate via tasks. Admins see all.
 // This matches the permissions matrix exactly and makes the service the single
 // enforcement point — no scattered where-clause logic in pages.
-export async function getProperties(
-  userId: string,
-): Promise<Result<PropertyWithMeta[]>> {
+export async function getProperties(): Promise<Result<PropertyWithMeta[]>> {
   try {
     const userResult = await getSessionUser();
     if (!userResult.success)
       return err({ code: "FORBIDDEN", message: "Not authenticated" });
 
     const user = userResult.data;
+    const actorId = user.id;
 
     const where =
       user.role === Role.ADMIN
         ? {}
         : user.role === Role.HOST
-          ? { createdById: userId }
+          ? { createdById: actorId }
           : // Operators: return empty — they work from the tasks view
             { id: "none" };
 
@@ -56,7 +55,6 @@ export async function getProperties(
 // to a property detail from a task, which is a real operational need.
 export async function getPropertyDetail(
   propertyId: string,
-  userId: string,
 ): Promise<Result<PropertyDetail>> {
   try {
     const userResult = await getSessionUser();
@@ -90,14 +88,14 @@ export async function getPropertyDetail(
       return err({ code: "NOT_FOUND", message: "Property not found" });
 
     // Ownership check — Host can only see their own property
-    if (user.role === Role.HOST && property.createdById !== userId) {
+    if (user.role === Role.HOST && property.createdById !== user.id) {
       return err({ code: "FORBIDDEN", message: "Access denied" });
     }
 
     // Operator check — must have at least one task assigned on this property
     if (user.role === Role.OPERATOR) {
       const hasAssignedTask = property.tasks.some(
-        (t) => t.assignedToId === userId,
+        (t) => t.assignedToId === user.id,
       );
       if (!hasAssignedTask)
         return err({ code: "FORBIDDEN", message: "Access denied" });
@@ -115,10 +113,11 @@ export async function getPropertyDetail(
 }
 
 // Creates a property. Admin only — enforced here and at the route level.
-export async function createProperty(
-  data: { name: string; address: string; description?: string | undefined },
-  userId: string,
-): Promise<Result<{ id: string }>> {
+export async function createProperty(data: {
+  name: string;
+  address: string;
+  description?: string | undefined;
+}): Promise<Result<{ id: string }>> {
   try {
     const userResult = await getSessionUser();
     if (!userResult.success)
@@ -139,7 +138,7 @@ export async function createProperty(
         name: data.name,
         address: data.address,
         description: data.description ?? null,
-        createdById: userId,
+        createdById: user.id,
       },
     });
 
@@ -148,7 +147,7 @@ export async function createProperty(
       action: AuditAction.PROPERTY_CREATED,
       entityType: "property",
       entityId: property.id,
-      userId,
+      userId: user.id,
       before: null,
       after: { name: property.name, address: property.address },
     });

@@ -29,14 +29,18 @@ const TaskTransitionButton = ({ taskId, currentStatus, userRole }: Props) => {
     setPending(newStatus);
     setError(null);
 
-    const result = await transitionTaskAction(taskId, newStatus);
+    try {
+      const result = await transitionTaskAction(taskId, newStatus);
 
-    if (!result.success) {
-      setError(result.error);
+      if (!result.success) {
+        setError(result.error);
+      }
+    } catch {
+      setError("Unable to update task status. Please try again.");
+    } finally {
+      // On success, revalidatePath in the action refreshes the page — no local state needed
+      setPending(null);
     }
-
-    // On success, revalidatePath in the action refreshes the page — no local state needed
-    setPending(null);
   };
 
   return (

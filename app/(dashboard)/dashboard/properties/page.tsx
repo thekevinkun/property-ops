@@ -22,7 +22,7 @@ export default async function PropertiesPage() {
     redirect("/dashboard/tasks");
   }
 
-  const result = await getProperties(sessionUser.id);
+  const result = await getProperties();
 
   if (!result.success) {
     return (
