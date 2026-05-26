@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import { getSessionUser } from "@/services/auth.service";
 import { Sidebar } from "@/components/layout";
 
@@ -20,15 +19,10 @@ export default async function DashboardLayout({
 
   const user = result.data;
 
-  // Get current pathname for active nav item highlighting
-  // headers() gives us the URL in server components without usePathname
-  const headersList = await headers();
-  const currentPath = headersList.get("x-invoke-path") ?? "/dashboard";
-
   return (
     <div className="flex min-h-screen bg-(--color-bg-page)">
       {/* Fixed sidebar — stays in place as content scrolls */}
-      <Sidebar user={user} currentPath={currentPath} />
+      <Sidebar user={user} />
 
       {/* Main content area — takes all remaining width */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">

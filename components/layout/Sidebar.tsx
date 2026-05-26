@@ -1,21 +1,26 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Role } from "@prisma/client";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 
 import { NAV_ITEMS } from "@/lib/constants";
-import type { SessionUser, Role } from "@/types";
+import { SessionUser } from "@/types";
 
 type SidebarProps = {
   user: SessionUser;
-  // The current pathname — used to highlight the active nav item
-  currentPath: string;
 };
 
-const Sidebar = ({ user, currentPath }: SidebarProps) => {
+const Sidebar = ({ user }: SidebarProps) => {
+  const pathname = usePathname();
+
   return (
     <aside
-      className="w-[240px] flex-shrink-0 flex flex-col border-r border-(--color-border) bg-(--color-bg-subtle) h-screen sticky top-0"
+      className="w-[240px] flex-shrink-0 flex flex-col border-r 
+        border-(--color-border) bg-(--color-bg-subtle) h-screen sticky top-0"
       aria-label="Main navigation"
     >
       {/* Logo area */}
@@ -36,8 +41,8 @@ const Sidebar = ({ user, currentPath }: SidebarProps) => {
           // Exact match for overview, prefix match for nested routes
           const isActive =
             item.href === "/dashboard"
-              ? currentPath === "/dashboard"
-              : currentPath.startsWith(item.href);
+              ? pathname === "/dashboard"
+              : pathname === item.href || pathname.startsWith(item.href + "/");
 
           return (
             <Link

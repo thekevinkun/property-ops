@@ -1,3 +1,9 @@
 export { default as Sidebar } from "./Sidebar";
 export { default as Topbar } from "./Topbar";
 export { default as RoleGate } from "./RoleGate";
+export { default as OverviewSection } from "./OverviewSection";
+export { default as PropertiesSection } from "./PropertiesSection";
+export { default as PropertyDetailSection } from "./PropertyDetailSection";
+export { default as TasksSection } from "./TasksSection";
+export { default as TaskDetailSection } from "./TaskDetailSection";
+export { default as TaskNewSection } from "./TaskNewSection";

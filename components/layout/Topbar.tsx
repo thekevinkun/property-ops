@@ -26,9 +26,11 @@ const Topbar = ({ title }: TopbarProps) => {
   };
 
   return (
-    <header className="h-14 flex items-center justify-between px-6 border-b border-(--color-border) bg-(--color-bg-page) sticky top-0 z-10">
+    <header className="h-14 flex items-center justify-between pl-8 pr-6
+      border-b border-(--color-border) bg-(--color-bg-page) sticky top-0 z-10"
+    >
       {/* Page title */}
-      <h2 className="text-sm font-medium text-(--color-text-900)">{title}</h2>
+      <h2 className="text-xl font-semibold text-(--color-text-900)">{title}</h2>
 
       {/* Sign out button */}
       <Button

@@ -1,3 +1,4 @@
+import { Role } from "@prisma/client";
 import {
   LayoutDashboard,
   Building2,
@@ -5,7 +6,6 @@ import {
   ScrollText,
   Users,
 } from "lucide-react";
-import type { Role } from "@/types";
 
 // UI HELPERS
 // Nav item shape used by sidebar — role filtering applied before rendering

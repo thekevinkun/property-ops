@@ -1,4 +1,4 @@
-import type { Role } from "@/types";
+import { Role } from "@prisma/client";
 
 type RoleGateProps = {
   // The authenticated user's current role

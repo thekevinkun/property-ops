@@ -2,12 +2,14 @@
 // All functions return Result<T> — never throw to the caller.
 
 import { cookies } from "next/headers";
+import { Role } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 import { createServerSupabaseClient } from "@/lib/supabase";
+
 import { ok, err } from "@/types/result";
-import type { Result } from "@/types/result";
-import type { Role } from "@/types";
-import type { SessionUser } from "@/types";
+import { Result } from "@/types/result";
+import { SessionUser } from "@/types";
 
 // GET SESSION USER
 // Returns the authenticated user from DB, or an error result.
