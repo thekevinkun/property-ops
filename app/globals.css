@@ -1,26 +1,580 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* Neutrals — the entire base palette */
+  --color-bg-page: #ffffff; /* Page background — pure white */
+  --color-bg-subtle: #fafafa; /* Barely-there surface — sidebar, table stripes */
+  --color-bg-card: #ffffff; /* Card background */
+  --color-bg-input: #f5f5f5; /* Input fill */
+  --color-bg-hover: #f5f5f5; /* Hover state on nav items, rows */
+
+  --color-border: #e5e5e5; /* Default border — single pixel, light */
+  --color-border-strong: #d4d4d4; /* Stronger border — active inputs, dividers */
+  --color-border-focus: #0a0a0a; /* Black focus ring — matches accent */
+
+  --color-text-900: #0a0a0a; /* Near-black — primary text. Not pure #000 */
+  --color-text-600: #525252; /* Secondary text — labels, captions */
+  --color-text-400: #a3a3a3; /* Muted — placeholders, disabled */
+  --color-text-inverse: #ffffff; /* Text on dark backgrounds */
+
+  /* Accent — black is the action color */
+  /* Buttons, active nav indicator, checked states — all black */
+  --color-accent: #0a0a0a;
+  --color-accent-hover: #262626;
+  --color-accent-subtle: #f5f5f5; /* Very light — used for ghost button hover */
+
+  /* Status colors — the ONLY non-neutral colors in the system */
+  /* Used exclusively on status badges. Never used decoratively. */
+  --color-status-pending: #d97706;
+  --color-status-pending-bg: #fffbeb;
+  --color-status-pending-border: #fcd34d;
+
+  --color-status-in-progress: #2563eb;
+  --color-status-in-progress-bg: #eff6ff;
+  --color-status-in-progress-border: #93c5fd;
+
+  --color-status-done: #16a34a;
+  --color-status-done-bg: #f0fdf4;
+  --color-status-done-border: #86efac;
+
+  --color-status-cancelled: #dc2626;
+  --color-status-cancelled-bg: #fef2f2;
+  --color-status-cancelled-border: #fca5a5;
+
+  /* Role colors — used only on role badges */
+  --color-role-admin: #7c3aed;
+  --color-role-admin-bg: #f5f3ff;
+  --color-role-admin-border: #c4b5fd;
+
+  --color-role-operator: #0284c7;
+  --color-role-operator-bg: #f0f9ff;
+  --color-role-operator-border: #7dd3fc;
+
+  --color-role-host: #c2410c;
+  --color-role-host-bg: #fff7ed;
+  --color-role-host-border: #fdba74;
+
+  /* Typography */
+  /* Geist Sans — Vercel's typeface. Clean, neutral, modern */
+  --font-sans: "Geist", "Inter", sans-serif;
+  /* Geist Mono — for code, IDs, timestamps */
+  --font-mono: "Geist Mono", "JetBrains Mono", monospace;
+
+  /* Type scale */
+  --text-xs: 0.75rem; /* 12px */
+  --text-sm: 0.875rem; /* 14px */
+  --text-base: 1rem; /* 16px */
+  --text-lg: 1.125rem; /* 18px */
+  --text-xl: 1.25rem; /* 20px */
+  --text-2xl: 1.5rem; /* 24px */
+  --text-3xl: 1.875rem; /* 30px */
+
+  /* Border radius — restrained, not bubbly */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  /* Shadows — minimal. Border does the heavy lifting */
+  /* Vercel-style: barely visible shadow. Border is more important. */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-card:
+    0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  --shadow-dropdown:
+    0 4px 16px 0 rgb(0 0 0 / 0.08), 0 0 0 1px rgb(0 0 0 / 0.04);
+  --shadow-modal: 0 8px 32px 0 rgb(0 0 0 / 0.12), 0 0 0 1px rgb(0 0 0 / 0.06);
+
+  /* Motion — subtle, purposeful */
+  --duration-fast: 100ms;
+  --duration-base: 150ms;
+  --duration-slow: 250ms;
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* BASE STYLES */
+@layer base {
+  /* Root body — sets the neutral foundation */
+  body {
+    background-color: var(--color-bg-page);
+    color: var(--color-text-900);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  /* Black focus ring — consistent across all interactive elements */
+  *:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Thin, neutral scrollbar — Vercel-style */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border-strong);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-400);
+  }
+
+  /* Mono for code, IDs, timestamps throughout */
+  code,
+  kbd,
+  pre,
+  [data-mono] {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  html {
+    @apply font-sans;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* COMPONENT CLASSES */
+@layer components {
+  /* Cards */
+  /* Standard card — border does the work, shadow is supporting */
+  .card-base {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Card that lifts on hover — used on clickable cards */
+  .card-interactive {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    transition:
+      border-color var(--duration-base) var(--ease-out),
+      box-shadow var(--duration-base) var(--ease-out),
+      transform var(--duration-base) var(--ease-out);
+    cursor: pointer;
+  }
+  .card-interactive:hover {
+    border-color: var(--color-border-strong);
+    box-shadow: var(--shadow-dropdown);
+    transform: translateY(-1px);
+  }
+
+  /* Inputs */
+  .input-base {
+    background-color: var(--color-bg-input);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem 0.75rem;
+    font-size: var(--text-sm);
+    font-family: var(--font-sans);
+    color: var(--color-text-900);
+    width: 100%;
+    transition:
+      border-color var(--duration-base) var(--ease-out),
+      background-color var(--duration-base) var(--ease-out);
+  }
+  .input-base::placeholder {
+    color: var(--color-text-400);
+  }
+  .input-base:hover {
+    border-color: var(--color-border-strong);
+  }
+  .input-base:focus {
+    outline: none;
+    background-color: var(--color-bg-card);
+    border-color: var(--color-border-focus);
+  }
+
+  /* Buttons */
+  /* Primary — black fill, white text */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.875rem;
+    background-color: var(--color-accent);
+    color: var(--color-text-inverse);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-accent);
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out);
+  }
+  .btn-primary:hover {
+    background-color: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+  }
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+
+  /* Secondary — white fill, black border */
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.875rem;
+    background-color: var(--color-bg-card);
+    color: var(--color-text-900);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border-strong);
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out);
+  }
+  .btn-secondary:hover {
+    background-color: var(--color-bg-hover);
+  }
+  .btn-secondary:active {
+    transform: scale(0.98);
+  }
+
+  /* Ghost — no border, subtle hover */
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    background-color: transparent;
+    color: var(--color-text-600);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+  }
+  .btn-ghost:hover {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-900);
+  }
+
+  /* Danger — for destructive actions */
+  .btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.875rem;
+    background-color: var(--color-status-cancelled);
+    color: #ffffff;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-status-cancelled);
+    cursor: pointer;
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+  .btn-danger:hover {
+    opacity: 0.88;
+  }
+
+  /* Status Badges */
+  /* Color is used here — because it carries meaning, not decoration */
+  .badge-base {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.1875rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    line-height: 1.5;
+    white-space: nowrap;
+    border-width: 1px;
+    border-style: solid;
+  }
+  .badge-pending {
+    background-color: var(--color-status-pending-bg);
+    color: var(--color-status-pending);
+    border-color: var(--color-status-pending-border);
+  }
+  .badge-in-progress {
+    background-color: var(--color-status-in-progress-bg);
+    color: var(--color-status-in-progress);
+    border-color: var(--color-status-in-progress-border);
+  }
+  .badge-done {
+    background-color: var(--color-status-done-bg);
+    color: var(--color-status-done);
+    border-color: var(--color-status-done-border);
+  }
+  .badge-cancelled {
+    background-color: var(--color-status-cancelled-bg);
+    color: var(--color-status-cancelled);
+    border-color: var(--color-status-cancelled-border);
+  }
+
+  /* Role Badges */
+  .badge-role-admin {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.1875rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    line-height: 1.5;
+    white-space: nowrap;
+    border-width: 1px;
+    border-style: solid;
+    background-color: var(--color-role-admin-bg);
+    color: var(--color-role-admin);
+    border-color: var(--color-role-admin-border);
+  }
+  .badge-role-operator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.1875rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    line-height: 1.5;
+    white-space: nowrap;
+    border-width: 1px;
+    border-style: solid;
+    background-color: var(--color-role-operator-bg);
+    color: var(--color-role-operator);
+    border-color: var(--color-role-operator-border);
+  }
+  .badge-role-host {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.1875rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    line-height: 1.5;
+    white-space: nowrap;
+    border-width: 1px;
+    border-style: solid;
+    background-color: var(--color-role-host-bg);
+    color: var(--color-role-host);
+    border-color: var(--color-role-host-border);
+  }
+
+  /* Sidebar Navigation */
+  /* No background on sidebar — right border separates it from content */
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.4375rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 450;
+    color: var(--color-text-600);
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+    cursor: pointer;
+  }
+  .nav-item:hover {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-900);
+  }
+  /* Active state: black text, subtle fill — no color accent */
+  .nav-item-active {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-900);
+    font-weight: 500;
+  }
+
+  /* Page Layout */
+  .page-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .page-content {
+    padding: 1.5rem 2rem;
+  }
+
+  /* Tables */
+  /* Clean, borderless table — Vercel / Linear style */
+  .table-base {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+  }
+  .table-base th {
+    text-align: left;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    color: var(--color-text-400);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.625rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .table-base td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-900);
+  }
+  .table-base tr:last-child td {
+    border-bottom: none;
+  }
+  .table-base tr:hover td {
+    background-color: var(--color-bg-subtle);
+  }
+
+  /* Skeleton */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--color-bg-input) 25%,
+      var(--color-border) 50%,
+      var(--color-bg-input) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+    border-radius: var(--radius-md);
+  }
+  @keyframes skeleton-shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background-color: var(--color-border);
+    width: 100%;
+  }
+}
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-destructive: var(--destructive);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
 }
