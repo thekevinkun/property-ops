@@ -1,1 +1,2 @@
-// All shared TypeScript types — never defined inline
+// All shared TypeScript types — never defined inline —
+export {}

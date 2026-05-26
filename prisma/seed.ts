@@ -1,0 +1,2 @@
+// Demo seed script
+export {}

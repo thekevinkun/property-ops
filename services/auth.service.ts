@@ -1,1 +1,2 @@
-// Auth service — getSessionUser(), requireRole()
+// Auth service — getSessionUser(), requireRole() —
+export {}
