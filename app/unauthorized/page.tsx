@@ -1,4 +1,5 @@
-// Unauthorized page
+import { UnauthorizedPlaceholder } from "@/components/features/auth";
+
 export default function UnauthorizedPage() {
-  return null
+  return <UnauthorizedPlaceholder />;
 }

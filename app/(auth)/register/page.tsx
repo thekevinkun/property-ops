@@ -1,4 +1,5 @@
-// Register page
+import { RegisterPlaceholder } from "@/components/features/auth";
+
 export default function RegisterPage() {
-  return null
+  return <RegisterPlaceholder />;
 }
