@@ -1,2 +1,165 @@
-// Property DB operations
-export {}
+import { AuditAction, Role } from "@prisma/client";
+
+import { prisma } from "@/lib/prisma";
+import { writeAuditLog } from "@/lib/audit";
+import { getSessionUser } from "@/services/auth.service";
+
+import { ok, err, Result } from "@/types/result";
+import { PropertyWithMeta, PropertyDetail } from "@/types/index";
+
+// Returns the property list scoped to the caller's role.
+// Decision for Adriano: Hosts see only their own properties (createdById match).
+// Operators see no properties in the list — they navigate via tasks. Admins see all.
+// This matches the permissions matrix exactly and makes the service the single
+// enforcement point — no scattered where-clause logic in pages.
+export async function getProperties(
+  userId: string,
+): Promise<Result<PropertyWithMeta[]>> {
+  try {
+    const userResult = await getSessionUser();
+    if (!userResult.success)
+      return err({ code: "FORBIDDEN", message: "Not authenticated" });
+
+    const user = userResult.data;
+
+    const where =
+      user.role === Role.ADMIN
+        ? {}
+        : user.role === Role.HOST
+          ? { createdById: userId }
+          : // Operators: return empty — they work from the tasks view
+            { id: "none" };
+
+    const properties = await prisma.property.findMany({
+      where,
+      include: {
+        createdBy: { select: { id: true, name: true, email: true } },
+        _count: { select: { tasks: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return ok(properties as PropertyWithMeta[]);
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Unknown error";
+    return err({
+      code: "INTERNAL",
+      message: "Failed to fetch properties",
+      details: message,
+    });
+  }
+}
+
+// Returns a single property with its full task list.
+// Access rule: Admin sees any. Host sees only their own. Operator sees any property
+// whose tasks include at least one assigned to them — this lets Operators navigate
+// to a property detail from a task, which is a real operational need.
+export async function getPropertyDetail(
+  propertyId: string,
+  userId: string,
+): Promise<Result<PropertyDetail>> {
+  try {
+    const userResult = await getSessionUser();
+    if (!userResult.success)
+      return err({ code: "FORBIDDEN", message: "Not authenticated" });
+
+    const user = userResult.data;
+
+    const property = await prisma.property.findUnique({
+      where: { id: propertyId },
+      include: {
+        createdBy: { select: { id: true, name: true, email: true } },
+        tasks: {
+          include: {
+            property: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            assignedTo: { select: { id: true, name: true, email: true } },
+            createdBy: { select: { id: true, name: true, email: true } },
+            _count: { select: { evidence: true } },
+          },
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    });
+
+    if (!property)
+      return err({ code: "NOT_FOUND", message: "Property not found" });
+
+    // Ownership check — Host can only see their own property
+    if (user.role === Role.HOST && property.createdById !== userId) {
+      return err({ code: "FORBIDDEN", message: "Access denied" });
+    }
+
+    // Operator check — must have at least one task assigned on this property
+    if (user.role === Role.OPERATOR) {
+      const hasAssignedTask = property.tasks.some(
+        (t) => t.assignedToId === userId,
+      );
+      if (!hasAssignedTask)
+        return err({ code: "FORBIDDEN", message: "Access denied" });
+    }
+
+    return ok(property as PropertyDetail);
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Unknown error";
+    return err({
+      code: "INTERNAL",
+      message: "Failed to fetch property",
+      details: message,
+    });
+  }
+}
+
+// Creates a property. Admin only — enforced here and at the route level.
+export async function createProperty(
+  data: { name: string; address: string; description?: string | undefined },
+  userId: string,
+): Promise<Result<{ id: string }>> {
+  try {
+    const userResult = await getSessionUser();
+    if (!userResult.success)
+      return err({ code: "FORBIDDEN", message: "Not authenticated" });
+
+    const user = userResult.data;
+
+    // Service-layer role enforcement — defense in depth beyond proxy.ts
+    if (user.role !== Role.ADMIN) {
+      return err({
+        code: "FORBIDDEN",
+        message: "Only Admins can create properties",
+      });
+    }
+
+    const property = await prisma.property.create({
+      data: {
+        name: data.name,
+        address: data.address,
+        description: data.description ?? null,
+        createdById: userId,
+      },
+    });
+
+    // Audit — records the full created state in `after`
+    await writeAuditLog({
+      action: AuditAction.PROPERTY_CREATED,
+      entityType: "property",
+      entityId: property.id,
+      userId,
+      before: null,
+      after: { name: property.name, address: property.address },
+    });
+
+    return ok({ id: property.id });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Unknown error";
+    return err({
+      code: "INTERNAL",
+      message: "Failed to create property",
+      details: message,
+    });
+  }
+}
