@@ -1,4 +1,8 @@
 import Link from "next/link";
+
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+
 import { NAV_ITEMS } from "@/lib/constants";
 import type { SessionUser, Role } from "@/types";
 
@@ -53,23 +57,20 @@ const Sidebar = ({ user, currentPath }: SidebarProps) => {
       <div className="p-3 border-t border-(--color-border)">
         <div className="flex items-center gap-2.5 px-2 py-2">
           {/* Avatar — initials-based, no image needed */}
-          <div
-            className="w-7 h-7 rounded-full bg-(--color-bg-input) border border-(--color-border) 
-              flex items-center justify-center flex-shrink-0"
-            aria-hidden="true"
-          >
-            <span className="text-xs font-medium text-(--color-text-600)">
+          <Avatar className="w-7 h-7 border border-(--color-border) bg-(--color-bg-input)">
+            <AvatarFallback className="bg-(--color-bg-input) text-xs font-medium text-(--color-text-600)">
               {user.name.charAt(0).toUpperCase()}
-            </span>
-          </div>
+            </AvatarFallback>
+          </Avatar>
 
           <div className="flex-1 min-w-0">
             {/* Name — truncated if long */}
             <p className="text-sm font-medium text-(--color-text-900) truncate leading-tight">
               {user.name}
             </p>
+
             {/* Role badge */}
-            <span
+            <Badge
               className={`
                 badge-base mt-0.5
                 ${user.role === "ADMIN" ? "badge-role-admin" : ""}
@@ -78,7 +79,7 @@ const Sidebar = ({ user, currentPath }: SidebarProps) => {
               `}
             >
               {user.role.charAt(0) + user.role.slice(1).toLowerCase()}
-            </span>
+            </Badge>
           </div>
         </div>
       </div>

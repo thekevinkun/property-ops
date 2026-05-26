@@ -5,7 +5,18 @@ import {
   ScrollText,
   Users,
 } from "lucide-react";
-import type { NavItem } from "@/types";
+import type { Role } from "@/types";
+
+// UI HELPERS
+// Nav item shape used by sidebar — role filtering applied before rendering
+export type NavItem = {
+  label: string;
+  href: string;
+  // Lucide icon component — typed as a React component accepting SVG props
+  icon: React.ComponentType<{ className?: string }>;
+  // If set, only these roles see this nav item
+  roles?: Role[];
+};
 
 // Nav items with their role restrictions.
 // Items without a `roles` array are visible to all authenticated users.
