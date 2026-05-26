@@ -1,6 +1,6 @@
 // Prisma client singleton — prevents multiple instances during hot reload in development.
 // In production, a single instance is created and reused across all requests.
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client/edge";
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
