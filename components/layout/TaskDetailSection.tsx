@@ -6,9 +6,10 @@ import {
   TaskStatusBadge,
   TaskTransitionButton,
 } from "@/components/features/tasks";
+import { EvidenceSection } from "@/components/features/evidence";
 
 import { TaskDetail } from "@/types";
-import { formatDateTime, formatBytes } from "@/helpers/format";
+import { formatDateTime } from "@/helpers/format";
 
 const MetaRow = ({
   label,
@@ -20,7 +21,6 @@ const MetaRow = ({
   return (
     <div className="flex flex-col gap-0.5">
       <span className="text-xs text-(--color-text-400)">{label}</span>
-
       {children}
     </div>
   );
@@ -96,55 +96,12 @@ const TaskDetailSection = ({ task, userRole }: Props) => {
             )}
 
             {/* Evidence */}
-            <Card className="card-base">
-              <div
-                className="flex items-center justify-between px-5 py-4"
-                style={{
-                  borderBottom: "1px solid var(--color-border)",
-                }}
-              >
-                <p className="text-sm text-(--color-text-900) font-medium">
-                  Evidence Photos
-                </p>
-
-                {(userRole === Role.OPERATOR || userRole === Role.ADMIN) && (
-                  <span
-                    className="bg-(--color-bg-subtle) text-xs text-(--color-text-400) px-2 py-1
-                      border border-(--color-border) rounded"
-                  >
-                    Upload
-                  </span>
-                )}
-              </div>
-
-              {task.evidence.length === 0 ? (
-                <CardContent className="p-8 text-center text-(--color-text-400)">
-                  <p className="text-sm">No photos uploaded yet.</p>
-                </CardContent>
-              ) : (
-                <div className="divide-y border-(--color-border)">
-                  {task.evidence.map((ev) => (
-                    <div
-                      key={ev.id}
-                      className="flex items-center justify-between px-5 py-3"
-                    >
-                      <div>
-                        <p className="text-sm text-(--color-text-900)">
-                          {ev.fileName}
-                        </p>
-
-                        <p className="text-xs text-(--color-text-400) mt-0.5">
-                          {formatBytes(ev.sizeBytes)} · by {ev.uploadedBy.name}
-                        </p>
-                      </div>
-
-                      <span className="font-mono text-xs text-(--color-text-400)">
-                        {formatDateTime(ev.createdAt)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
+            <Card className="card-base p-0 overflow-hidden">
+              <EvidenceSection
+                taskId={task.id}
+                evidence={task.evidence}
+                userRole={userRole}
+              />
             </Card>
           </div>
 

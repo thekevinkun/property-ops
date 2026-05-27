@@ -31,7 +31,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Properties",
     href: "/dashboard/properties",
     icon: Building2,
-    // All roles see properties (scoped by role in the service layer)
+    roles: [Role.HOST, Role.ADMIN],
   },
   {
     label: "Tasks",

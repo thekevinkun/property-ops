@@ -4,9 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { writeAuditLog } from "@/lib/audit";
 import { canTransition } from "@/lib/state-machine";
 import { getSessionUser } from "@/services/auth.service";
+import { resolveEvidenceUrls } from "@/services/upload.service";
 
 import { ok, err, Result } from "@/types/result";
-import { TaskWithMeta, TaskDetail } from "@/types/index";
+import { TaskWithMeta, TaskDetail, EvidenceWithUploader } from "@/types/index";
 
 // Returns the task list scoped to the caller's role.
 // Decision for Adriano: Operators see only tasks assigned to them — this is the
@@ -98,7 +99,13 @@ export async function getTaskDetail(
       }
     }
 
-    return ok(task as TaskDetail);
+    // Resolve signed URLs for all evidence items — fileUrl in DB is a storage path,
+    // not a public URL. Non-fatal per item — failed URLs fall back to raw storage path.
+    const evidenceWithUrls = await resolveEvidenceUrls(
+      task.evidence as EvidenceWithUploader[],
+    );
+
+    return ok({ ...task, evidence: evidenceWithUrls } as TaskDetail);
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unknown error";
     return err({
