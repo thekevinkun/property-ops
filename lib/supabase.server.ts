@@ -3,9 +3,18 @@
 // into a client bundle — hard guardrail against accidental exposure.
 // Import this only in route handlers and server-side services.
 import "server-only";
+
 import { createClient } from "@supabase/supabase-js";
+
 import { env } from "@/lib/env";
 
 export function createServiceSupabaseClient() {
-  return createClient(env.supabaseUrl, env.supabaseServiceKey);
+  return createClient(env.supabaseUrl, env.supabaseServiceKey, {
+    auth: {
+      // Service-role client never uses browser auth/session features
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
 }
