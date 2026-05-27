@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Role } from "@prisma/client";
 
 import { changeUserRoleAction } from "@/actions/user.actions";
@@ -23,11 +23,10 @@ type Props = {
 
 const UserRoleSelect = ({ userId, currentRole }: Props) => {
   const [selected, setSelected] = useState<Role>(currentRole);
+  const [savedRole, setSavedRole] = useState<Role>(currentRole);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
-
-  const isDirty = selected !== currentRole;
 
   const handleSave = async () => {
     setPending(true);
@@ -39,20 +38,27 @@ const UserRoleSelect = ({ userId, currentRole }: Props) => {
 
       if (result.error) {
         setError(result.error);
-        // Reset select back to current role on failure
-        setSelected(currentRole);
+        setSelected(savedRole);
       } else {
+        setSavedRole(selected);
         setSaved(true);
         // Clear saved indicator after 2 seconds
         setTimeout(() => setSaved(false), 2000);
       }
     } catch {
       setError("Unable to update role. Please try again.");
-      setSelected(currentRole);
+      setSelected(savedRole);
     } finally {
       setPending(false);
     }
   };
+
+  useEffect(() => {
+    setSelected(currentRole);
+    setSavedRole(currentRole);
+  }, [currentRole]);
+
+  const isDirty = selected !== savedRole;
 
   return (
     <div className="flex flex-col gap-1.5">

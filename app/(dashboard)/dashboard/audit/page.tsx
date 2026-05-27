@@ -28,9 +28,21 @@ export default async function AuditPage({ searchParams }: Props) {
     redirect("/login");
   }
 
+  const sessionUser = sessionUserResult.data;
+
+  if (sessionUser.role !== "ADMIN") {
+    redirect("/unauthorized");
+  }
+
+  const validActions = new Set(Object.values(AuditAction));
+  const safeAction =
+    action !== "all" && validActions.has(action as AuditAction)
+      ? (action as AuditAction)
+      : undefined;
+
   const [logsResult, usersResult] = await Promise.all([
     getAuditLogs({
-      ...(action !== "all" ? { action: action as AuditAction } : {}),
+      ...(safeAction ? { action: safeAction } : {}),
       ...(entityType !== "all" ? { entityType } : {}),
       ...(userId !== "all" ? { userId } : {}),
     }),

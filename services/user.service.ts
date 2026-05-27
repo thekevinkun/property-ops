@@ -108,10 +108,20 @@ export async function changeUserRole(
 
     if (supabaseError) {
       // Supabase sync failed — roll back the DB change to keep them in sync
-      await prisma.user.update({
-        where: { id: targetUserId },
+      const rollback = await prisma.user.updateMany({
+        where: { id: targetUserId, role: newRole },
         data: { role: previousRole },
       });
+
+      if (rollback.count === 0) {
+        return err({
+          code: "INTERNAL",
+          message:
+            "Failed to sync role and detected concurrent role change; manual reconciliation required",
+          details: supabaseError.message,
+        });
+      }
+
       return err({
         code: "INTERNAL",
         message: "Failed to sync role — change rolled back",

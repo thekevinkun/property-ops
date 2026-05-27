@@ -14,6 +14,10 @@ export default async function UsersPage() {
 
   const sessionUser = sessionUserResult.data;
 
+  if (sessionUser.role !== "ADMIN") {
+    redirect("/unauthorized");
+  }
+
   const usersResult = await getUsers();
 
   if (!usersResult.success) {
