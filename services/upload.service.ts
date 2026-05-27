@@ -6,12 +6,12 @@ import { AuditAction } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { writeAuditLog } from "@/lib/audit";
-import { createServiceSupabaseClient } from "@/lib/supabase";
+import { createServiceSupabaseClient } from "@/lib/supabase.server";
 
+import { BUCKET } from "@/lib/upload";
 import { ok, err, Result } from "@/types/result";
 import { EvidenceWithUploader } from "@/types";
 
-const BUCKET = "evidence";
 // Signed URLs are valid for 24 hours — enough for a working shift without permanent exposure
 const SIGNED_URL_EXPIRY_SECONDS = 60 * 60 * 24;
 

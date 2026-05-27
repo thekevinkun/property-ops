@@ -8,7 +8,7 @@ import { Role } from "@prisma/client";
 
 import { getSessionUser } from "@/services/auth.service";
 import { createEvidenceRecord } from "@/services/upload.service";
-import { createServiceSupabaseClient } from "@/lib/supabase";
+import { createServiceSupabaseClient } from "@/lib/supabase.server";
 
 import { MAX_FILE_SIZE, ALLOWED_MIME_TYPES, BUCKET } from "@/lib/upload";
 
@@ -94,6 +94,13 @@ export async function POST(request: NextRequest) {
 
   if (!result.success) {
     console.error("[upload] Evidence record error:", result.error.message);
+    // Rollback — remove the orphaned file from Storage so the bucket stays clean
+    const { error: removeError } = await supabase.storage
+      .from(BUCKET)
+      .remove([storagePath]);
+    if (removeError) {
+      console.error("[upload] Rollback delete failed:", removeError.message);
+    }
     return NextResponse.json(
       { error: "Failed to save evidence record" },
       { status: 500 },
