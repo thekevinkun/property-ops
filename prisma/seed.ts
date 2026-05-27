@@ -158,6 +158,58 @@ async function main() {
         metadata: { source: "seed" },
       },
     });
+
+    // Audit log — property creation
+    await prisma.auditLog.create({
+      data: {
+        action: "PROPERTY_CREATED",
+        entityType: "property",
+        entityId: property.id,
+        userId: userIds["ADMIN"]!,
+        before: Prisma.JsonNull,
+        after: { name: property.name, address: property.address },
+        metadata: { source: "seed" },
+      },
+    });
+
+    // Audit log — status transitions that match the seeded task states
+    // seed-task-2 is IN_PROGRESS — simulate PENDING → IN_PROGRESS by Operator
+    await prisma.auditLog.create({
+      data: {
+        action: "TASK_STATUS_CHANGED",
+        entityType: "task",
+        entityId: "seed-task-2",
+        userId: userIds["OPERATOR"]!,
+        before: { status: "PENDING" },
+        after: { status: "IN_PROGRESS" },
+        metadata: { transition: "PENDING → IN_PROGRESS", source: "seed" },
+      },
+    });
+
+    // seed-task-3 is DONE — simulate PENDING → IN_PROGRESS → DONE by Operator
+    await prisma.auditLog.create({
+      data: {
+        action: "TASK_STATUS_CHANGED",
+        entityType: "task",
+        entityId: "seed-task-3",
+        userId: userIds["OPERATOR"]!,
+        before: { status: "PENDING" },
+        after: { status: "IN_PROGRESS" },
+        metadata: { transition: "PENDING → IN_PROGRESS", source: "seed" },
+      },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        action: "TASK_STATUS_CHANGED",
+        entityType: "task",
+        entityId: "seed-task-3",
+        userId: userIds["OPERATOR"]!,
+        before: { status: "IN_PROGRESS" },
+        after: { status: "DONE" },
+        metadata: { transition: "IN_PROGRESS → DONE", source: "seed" },
+      },
+    });
   }
 
   console.log(`✓ Audit logs created`);

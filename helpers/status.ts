@@ -1,3 +1,4 @@
+import { Role } from "@prisma/client";
 import { TaskWithMeta } from "@/types/index";
 
 // Status filter labels shown as tabs above the task list
@@ -16,3 +17,16 @@ export function filterByStatus(
   if (status === "all" || !status) return tasks;
   return tasks.filter((t) => t.status === status);
 }
+
+export const ROLE_OPTIONS = [
+  { label: "Admin", value: Role.ADMIN },
+  { label: "Operator", value: Role.OPERATOR },
+  { label: "Host", value: Role.HOST },
+];
+
+// Maps role to its badge class from globals.css
+export const ROLE_BADGE: Record<Role, string> = {
+  ADMIN: "badge-role-admin",
+  OPERATOR: "badge-role-operator",
+  HOST: "badge-role-host",
+};

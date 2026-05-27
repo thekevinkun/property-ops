@@ -1,3 +1,23 @@
+// Formats date as "Saturday, 27 May 2026 | 7.24pm"
+export function formatLiveDateTime(date: Date): string {
+  const datePart = date.toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  const timePart = date
+    .toLocaleTimeString("en-GB", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+    .replace(":", ".");
+
+  return `${datePart} | ${timePart}`;
+}
+
 // Formats a date as "12 May 2026" — no library needed for this format
 export function formatDate(date: Date): string {
   return new Date(date).toLocaleDateString("en-GB", {

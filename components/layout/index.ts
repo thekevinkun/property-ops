@@ -7,3 +7,5 @@ export { default as PropertyDetailSection } from "./PropertyDetailSection";
 export { default as TasksSection } from "./TasksSection";
 export { default as TaskDetailSection } from "./TaskDetailSection";
 export { default as TaskNewSection } from "./TaskNewSection";
+export { default as AuditLogSection } from "./AuditLogSection";
+export { default as UsersSection } from "./UsersSection";

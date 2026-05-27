@@ -415,7 +415,7 @@
   /* Page Layout */
   .page-header {
     padding: 1.5rem 2rem;
-    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-bg-subtle);
   }
   .page-content {
     padding: 1.5rem 2rem;
