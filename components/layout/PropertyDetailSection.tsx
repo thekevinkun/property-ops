@@ -5,6 +5,7 @@ import { Role } from "@prisma/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TaskCard } from "@/components/features/tasks";
+import { PropertyDeleteButton } from "@/components/features/properties";
 
 import { PropertyDetail } from "@/types";
 
@@ -29,17 +30,30 @@ const PropertyDetailSection = ({ property, userRole }: Props) => {
     <div>
       <div className="page-header">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-1.5 text-xs text-(--color-text-400) mb-3">
-          <Link
-            href="/dashboard/properties"
-            className="text-(--color-text-600) hover:underline"
-          >
-            Properties
-          </Link>
+        <div className="flex justify-between gap-1.5 mb-5">
+          <div className="flex items-center gap-1.5 text-xs text-(--color-text-400)">
+            <Link
+              href="/dashboard/properties"
+              className="text-(--color-text-600) hover:underline"
+            >
+              Properties
+            </Link>
 
-          <span>/</span>
+            <span>/</span>
 
-          <span>{property.name}</span>
+            <span>{property.name}</span>
+          </div>
+
+          {/* Admin actions */}
+          {isAdmin && (
+            <div className="flex items-center gap-2">
+              <PropertyDeleteButton
+                propertyId={property.id}
+                propertyName={property.name}
+                taskCount={property.tasks.length}
+              />
+            </div>
+          )}
         </div>
 
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -80,13 +94,19 @@ const PropertyDetailSection = ({ property, userRole }: Props) => {
             Tasks ({property.tasks.length})
           </h2>
 
-          {/* Admin can create tasks directly from the property context */}
+          {/* Admin actions */}
           {isAdmin && (
-            <Button asChild variant="outline" className="btn-secondary text-xs">
-              <Link href={`/dashboard/tasks/new?propertyId=${property.id}`}>
-                Add Task
-              </Link>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                asChild
+                variant="outline"
+                className="btn-secondary text-xs"
+              >
+                <Link href={`/dashboard/tasks/new?propertyId=${property.id}`}>
+                  Add Task
+                </Link>
+              </Button>
+            </div>
           )}
         </div>
 

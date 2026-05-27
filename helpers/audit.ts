@@ -32,6 +32,11 @@ export const AUDIT_ACTION_CONFIG: Record<
     className:
       "badge-base bg-(--color-bg-subtle) text-(--color-text-600) border-(--color-border)",
   },
+  PROPERTY_DELETED: {
+    label: "Property Deleted",
+    className:
+      "badge-base bg-(--color-bg-subtle) text-(--color-text-600) border-(--color-border)",
+  },
   USER_ROLE_CHANGED: {
     label: "Role Changed",
     className: "badge-base badge-role-admin",

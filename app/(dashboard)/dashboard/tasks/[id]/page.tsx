@@ -39,5 +39,11 @@ export default async function TaskDetailPage({ params }: Props) {
     );
   }
 
-  return <TaskDetailSection task={result.data} userRole={sessionUser.role} />;
+  return (
+    <TaskDetailSection
+      task={result.data}
+      userRole={sessionUser.role}
+      currentUserId={sessionUser.id}
+    />
+  );
 }

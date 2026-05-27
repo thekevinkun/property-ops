@@ -1,25 +1,81 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Role } from "@prisma/client";
+import { Loader2Icon, Trash2Icon, XIcon } from "lucide-react";
 
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 import { EvidenceWithUploader } from "@/types";
 import { formatDateTime, formatBytes } from "@/helpers/format";
+import ConfirmationDialog from "@/components/ui/confirmation-dialog";
 
 type Props = {
   evidence: EvidenceWithUploader[];
   uploading: boolean;
+  userRole: Role;
+  currentUserId: string;
 };
 
-const EvidencePhotoGrid = ({ evidence, uploading }: Props) => {
+const EvidencePhotoGrid = ({
+  evidence,
+  uploading,
+  userRole,
+  currentUserId,
+}: Props) => {
+  const router = useRouter();
+
   const [selected, setSelected] = useState<EvidenceWithUploader | null>(null);
+
+  // State for delete confirmation dialog and async delete operation
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  // Determine if the current user can delete the selected evidence
+  const canDeleteEvidence =
+    !!selected &&
+    (userRole === Role.ADMIN ||
+      (userRole === Role.OPERATOR && selected.uploadedById === currentUserId));
+
+  const handleDeleteEvidence = async () => {
+    if (!selected) return;
+
+    setDeleting(true);
+    setDeleteError(null);
+
+    try {
+      const res = await fetch(`/api/evidence/${selected.id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setDeleteError(
+          (body as { error?: string }).error ??
+            "Delete failed. Please try again.",
+        );
+        return;
+      }
+
+      setDeleteDialogOpen(false);
+      setSelected(null);
+      router.refresh();
+    } catch {
+      setDeleteError("Delete failed. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   // Empty state — spinner when uploading, message when idle
   if (evidence.length === 0) {
@@ -63,7 +119,11 @@ const EvidencePhotoGrid = ({ evidence, uploading }: Props) => {
             <button
               key={ev.id}
               type="button"
-              onClick={() => setSelected(ev)}
+              onClick={() => {
+                setSelected(ev);
+                setDeleteError(null);
+                setDeleteDialogOpen(false);
+              }}
               disabled={uploading}
               className="group relative aspect-square rounded-(--radius-md) overflow-hidden
                 border border-(--color-border) bg-(--color-bg-subtle)
@@ -99,16 +159,61 @@ const EvidencePhotoGrid = ({ evidence, uploading }: Props) => {
       </div>
 
       {/* Modal preview */}
-      <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
-        <DialogContent className="card-base sm:max-w-2xl p-0 overflow-hidden">
-          <DialogHeader className="px-5 pt-5 pb-0">
-            <DialogTitle className="text-sm font-medium text-(--color-text-900) truncate">
-              {selected?.fileName}
-            </DialogTitle>
-          </DialogHeader>
-
+      <Dialog
+        open={!!selected}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelected(null);
+            setDeleteDialogOpen(false);
+            setDeleteError(null);
+          }
+        }}
+      >
+        <DialogContent
+          aria-describedby={undefined}
+          showCloseButton={false}
+          className="card-base sm:max-w-2xl p-0 overflow-hidden"
+        >
           {selected && (
             <>
+              <DialogHeader className="flex-row items-start justify-between gap-3 px-5 pt-5 pb-0">
+                <div className="min-w-0">
+                  <DialogTitle className="text-sm font-medium text-(--color-text-900) truncate">
+                    {selected.fileName}
+                  </DialogTitle>
+                </div>
+
+                <div className="flex items-center gap-1">
+                  {canDeleteEvidence && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => setDeleteDialogOpen(true)}
+                      disabled={uploading || deleting}
+                      aria-label="Delete evidence photo"
+                    >
+                      {deleting ? (
+                        <Loader2Icon className="size-4 animate-spin" />
+                      ) : (
+                        <Trash2Icon className="size-4" />
+                      )}
+                    </Button>
+                  )}
+
+                  <DialogClose asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label="Close preview"
+                    >
+                      <XIcon className="size-4" />
+                    </Button>
+                  </DialogClose>
+                </div>
+              </DialogHeader>
+
               <div className="relative w-full aspect-video bg-(--color-bg-subtle)">
                 <Image
                   src={selected.fileUrl}
@@ -133,6 +238,11 @@ const EvidencePhotoGrid = ({ evidence, uploading }: Props) => {
                   <span className="text-xs text-(--color-text-400)">
                     {formatBytes(selected.sizeBytes)}
                   </span>
+                  {deleteError && (
+                    <span className="text-xs text-(--color-status-cancelled)">
+                      {deleteError}
+                    </span>
+                  )}
                 </div>
 
                 <span className="font-mono text-xs text-(--color-text-400)">
@@ -143,6 +253,22 @@ const EvidencePhotoGrid = ({ evidence, uploading }: Props) => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Confirmation dialog for deleting evidence */}
+      <ConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open);
+          if (!open) {
+            setDeleteError(null);
+          }
+        }}
+        title="Delete this photo?"
+        description="This will permanently remove the evidence image from storage and the database."
+        confirmLabel="Delete photo"
+        loading={deleting}
+        onConfirm={handleDeleteEvidence}
+      />
     </>
   );
 };

@@ -29,9 +29,10 @@ const MetaRow = ({
 type Props = {
   task: TaskDetail;
   userRole: Role;
+  currentUserId: string;
 };
 
-const TaskDetailSection = ({ task, userRole }: Props) => {
+const TaskDetailSection = ({ task, userRole, currentUserId }: Props) => {
   return (
     <div>
       <div className="page-header">
@@ -101,6 +102,7 @@ const TaskDetailSection = ({ task, userRole }: Props) => {
                 taskId={task.id}
                 evidence={task.evidence}
                 userRole={userRole}
+                currentUserId={currentUserId}
               />
             </Card>
           </div>

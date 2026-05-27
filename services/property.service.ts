@@ -1,4 +1,4 @@
-import { AuditAction, Role } from "@prisma/client";
+import { AuditAction, Prisma, Role } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { writeAuditLog } from "@/lib/audit";
@@ -158,6 +158,89 @@ export async function createProperty(data: {
     return err({
       code: "INTERNAL",
       message: "Failed to create property",
+      details: message,
+    });
+  }
+}
+
+// Deletes a property. Admin only, and only when there are no tasks attached.
+export async function deleteProperty(
+  propertyId: string,
+): Promise<Result<{ id: string }>> {
+  try {
+    const userResult = await getSessionUser();
+    if (!userResult.success)
+      return err({ code: "FORBIDDEN", message: "Not authenticated" });
+
+    const user = userResult.data;
+
+    if (user.role !== Role.ADMIN) {
+      return err({
+        code: "FORBIDDEN",
+        message: "Only Admins can delete properties",
+      });
+    }
+
+    const property = await prisma.property.findUnique({
+      where: { id: propertyId },
+      select: {
+        id: true,
+        name: true,
+        address: true,
+        description: true,
+        createdById: true,
+        _count: { select: { tasks: true } },
+      },
+    });
+
+    if (!property) {
+      return err({ code: "NOT_FOUND", message: "Property not found" });
+    }
+
+    if (property._count.tasks > 0) {
+      return err({
+        code: "CONFLICT",
+        message: "Property has tasks and cannot be deleted",
+      });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.property.delete({
+        where: { id: property.id },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          action: AuditAction.PROPERTY_DELETED,
+          entityType: "property",
+          entityId: property.id,
+          userId: user.id,
+          before: {
+            id: property.id,
+            name: property.name,
+            address: property.address,
+            description: property.description,
+            createdById: property.createdById,
+            taskCount: property._count.tasks,
+          },
+          after: Prisma.JsonNull,
+        },
+      });
+    });
+
+    return ok({ id: property.id });
+  } catch (e: unknown) {
+    if ((e as { code?: string }).code === "P2003") {
+      return err({
+        code: "CONFLICT",
+        message: "Property has tasks and cannot be deleted",
+      });
+    }
+
+    const message = e instanceof Error ? e.message : "Unknown error";
+    return err({
+      code: "INTERNAL",
+      message: "Failed to delete property",
       details: message,
     });
   }

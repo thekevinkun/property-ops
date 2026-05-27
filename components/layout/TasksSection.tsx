@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { TaskCard, TaskForm } from "@/components/features/tasks";
@@ -71,6 +72,10 @@ const TasksSection = ({
                   <DialogTitle className="text-sm font-medium text-(--color-text-900)">
                     Create Task
                   </DialogTitle>
+
+                  <DialogDescription>
+                    Assign a new work order to a property and operator.
+                  </DialogDescription>
                 </DialogHeader>
 
                 {/* Form */}

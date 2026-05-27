@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { Role } from "@prisma/client";
 
-import { EvidenceUploader } from "@/components/features/evidence";
-import { EvidencePhotoGrid } from "@/components/features/evidence";
+import {
+  EvidenceUploader,
+  EvidencePhotoGrid,
+} from "@/components/features/evidence";
 
 import { EvidenceWithUploader } from "@/types";
 
@@ -12,9 +14,15 @@ type Props = {
   taskId: string;
   evidence: EvidenceWithUploader[];
   userRole: Role;
+  currentUserId: string;
 };
 
-const EvidenceSection = ({ taskId, evidence, userRole }: Props) => {
+const EvidenceSection = ({
+  taskId,
+  evidence,
+  userRole,
+  currentUserId,
+}: Props) => {
   const [uploading, setUploading] = useState(false);
 
   const canUpload = userRole === Role.OPERATOR || userRole === Role.ADMIN;
@@ -45,7 +53,12 @@ const EvidenceSection = ({ taskId, evidence, userRole }: Props) => {
         )}
       </div>
 
-      <EvidencePhotoGrid evidence={evidence} uploading={uploading} />
+      <EvidencePhotoGrid
+        evidence={evidence}
+        uploading={uploading}
+        userRole={userRole}
+        currentUserId={currentUserId}
+      />
     </>
   );
 };
