@@ -1,0 +1,2 @@
+-- AddEvidenceDeletedAudit
+ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'EVIDENCE_DELETED';

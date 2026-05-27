@@ -27,8 +27,18 @@ export const AUDIT_ACTION_CONFIG: Record<
     className:
       "badge-base bg-(--color-bg-subtle) text-(--color-text-600) border-(--color-border)",
   },
+  EVIDENCE_DELETED: {
+    label: "Evidence Deleted",
+    className:
+      "badge-base bg-(--color-bg-subtle) text-(--color-text-600) border-(--color-border)",
+  },
   PROPERTY_CREATED: {
     label: "Property Created",
+    className:
+      "badge-base bg-(--color-bg-subtle) text-(--color-text-600) border-(--color-border)",
+  },
+  PROPERTY_DELETED: {
+    label: "Property Deleted",
     className:
       "badge-base bg-(--color-bg-subtle) text-(--color-text-600) border-(--color-border)",
   },

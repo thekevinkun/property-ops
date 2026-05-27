@@ -43,7 +43,10 @@ const PropertiesSection = ({ properties, userRole }: Props) => {
                 Add Property
               </DialogTrigger>
 
-              <DialogContent className="card-base sm:max-w-md">
+              <DialogContent
+                aria-describedby={undefined}
+                className="card-base sm:max-w-md"
+              >
                 <DialogHeader>
                   <DialogTitle className="text-sm font-medium text-(--color-text-900)">
                     New Property

@@ -1,0 +1,2 @@
+-- AddPropertyDeletedAudit
+ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'PROPERTY_DELETED';
