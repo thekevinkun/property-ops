@@ -9,9 +9,10 @@ import { formatLiveDateTime } from "@/helpers/format";
 
 type Props = {
   onMenuClick: () => void;
+  isSidebarOpen: boolean;
 };
 
-const Topbar = ({ onMenuClick }: Props) => {
+const Topbar = ({ onMenuClick, isSidebarOpen }: Props) => {
   const router = useRouter();
   const supabase = createClient();
   const [dateTime, setDateTime] = useState<string>("");
@@ -57,6 +58,8 @@ const Topbar = ({ onMenuClick }: Props) => {
           onClick={onMenuClick}
           className="btn-ghost lg:hidden p-2"
           aria-label="Open navigation"
+          aria-controls="dashboard-sidebar"
+          aria-expanded={isSidebarOpen}
         >
           <Menu className="w-4 h-4" aria-hidden="true" />
         </Button>

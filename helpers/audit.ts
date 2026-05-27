@@ -36,6 +36,11 @@ export const AUDIT_ACTION_CONFIG: Record<
     label: "Role Changed",
     className: "badge-base badge-role-admin",
   },
+  PROPERTY_DELETED: {
+    label: "Property Deleted",
+    className:
+      "badge-base bg-(--color-bg-subtle) text-(--color-text-600) border-(--color-border)",
+  },
 };
 
 // Entity type labels for the filter dropdown
