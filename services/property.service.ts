@@ -230,11 +230,16 @@ export async function deleteProperty(
 
     return ok({ id: property.id });
   } catch (e: unknown) {
-    if ((e as { code?: string }).code === "P2003") {
+    const code = (e as { code?: string }).code;
+    if (code === "P2003") {
       return err({
         code: "CONFLICT",
         message: "Property has tasks and cannot be deleted",
       });
+    }
+
+    if (code === "P2025") {
+      return err({ code: "NOT_FOUND", message: "Property not found" });
     }
 
     const message = e instanceof Error ? e.message : "Unknown error";

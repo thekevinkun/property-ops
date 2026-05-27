@@ -1,60 +1,61 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-import { Button } from "@/components/ui/button"
-import ConfirmationDialog from "@/components/ui/confirmation-dialog"
+import { Button } from "@/components/ui/button";
+import ConfirmationDialog from "@/components/ui/confirmation-dialog";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@/components/ui/tooltip";
 
 type Props = {
-  propertyId: string
-  propertyName: string
-  taskCount: number
-}
+  propertyId: string;
+  propertyName: string;
+  taskCount: number;
+};
 
 const PropertyDeleteButton = ({
   propertyId,
   propertyName,
   taskCount,
 }: Props) => {
-  const router = useRouter()
-  const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const canDelete = taskCount === 0
+  const canDelete = taskCount === 0;
 
   const handleDelete = async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     try {
       const res = await fetch(`/api/properties/${propertyId}`, {
         method: "DELETE",
-      })
+      });
 
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
+        const body = await res.json().catch(() => ({}));
         setError(
-          (body as { error?: string }).error ?? "Delete failed. Please try again.",
-        )
-        return
+          (body as { error?: string }).error ??
+            "Delete failed. Please try again.",
+        );
+        return;
       }
 
-      setOpen(false)
-      router.push("/dashboard/properties")
-      router.refresh()
+      setOpen(false);
+      router.push("/dashboard/properties");
+      router.refresh();
     } catch {
-      setError("Delete failed. Please try again.")
+      setError("Delete failed. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <>
@@ -71,7 +72,11 @@ const PropertyDeleteButton = ({
       ) : (
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="inline-flex">
+            <span
+              className="inline-flex"
+              tabIndex={0}
+              aria-label="Delete is available only when no tasks exist."
+            >
               <Button
                 type="button"
                 variant="destructive"
@@ -92,8 +97,8 @@ const PropertyDeleteButton = ({
       <ConfirmationDialog
         open={open}
         onOpenChange={(nextOpen) => {
-          setOpen(nextOpen)
-          if (!nextOpen) setError(null)
+          setOpen(nextOpen);
+          if (!nextOpen) setError(null);
         }}
         title={`Delete ${propertyName}?`}
         description="This will permanently remove the property. It cannot be undone."
@@ -103,7 +108,7 @@ const PropertyDeleteButton = ({
         onConfirm={handleDelete}
       />
     </>
-  )
-}
+  );
+};
 
-export default PropertyDeleteButton
+export default PropertyDeleteButton;

@@ -1,9 +1,4 @@
-// This service handles the deletion of evidence files and their corresponding database records.
-// It checks for user authentication and authorization, deletes the file from Supabase storage,
-// and then removes the record from the database. The function returns a Result type indicating success or failure,
-// along with relevant data or error information.
-
-import { Role } from "@prisma/client";
+import { AuditAction, Prisma, Role } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { createServiceSupabaseClient } from "@/lib/supabase.server";
@@ -30,8 +25,18 @@ export async function deleteEvidence(
       select: {
         id: true,
         taskId: true,
-        uploadedById: true,
+        fileName: true,
         fileUrl: true,
+        mimeType: true,
+        sizeBytes: true,
+        uploadedById: true,
+        createdAt: true,
+        uploadedBy: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 
@@ -48,24 +53,44 @@ export async function deleteEvidence(
       return err({ code: "FORBIDDEN", message: "Access denied" });
     }
 
-    // Delete the file from Supabase storage
+    await prisma.$transaction(async (tx) => {
+      await tx.evidence.delete({
+        where: { id: evidence.id },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          action: AuditAction.EVIDENCE_DELETED,
+          entityType: "evidence",
+          entityId: evidence.id,
+          userId: user.id,
+          before: {
+            id: evidence.id,
+            taskId: evidence.taskId,
+            fileName: evidence.fileName,
+            fileUrl: evidence.fileUrl,
+            mimeType: evidence.mimeType,
+            sizeBytes: evidence.sizeBytes,
+            uploadedById: evidence.uploadedById,
+            uploadedByName: evidence.uploadedBy.name,
+            createdAt: evidence.createdAt.toISOString(),
+          },
+          after: Prisma.JsonNull,
+        },
+      });
+    });
+
     const supabase = createServiceSupabaseClient();
     const { error: removeError } = await supabase.storage
       .from(BUCKET)
       .remove([evidence.fileUrl]);
 
     if (removeError) {
-      return err({
-        code: "INTERNAL",
-        message: "Failed to delete evidence file",
-        details: removeError.message,
+      console.error("[evidence] Storage cleanup failed:", removeError.message, {
+        evidenceId: evidence.id,
+        fileUrl: evidence.fileUrl,
       });
     }
-
-    // Delete the database record
-    await prisma.evidence.delete({
-      where: { id: evidence.id },
-    });
 
     return ok({ taskId: evidence.taskId });
   } catch (e: unknown) {
