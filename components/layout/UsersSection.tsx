@@ -35,7 +35,7 @@ const UsersSection = ({ users, currentUserId }: Props) => {
             </CardContent>
           </Card>
         ) : (
-          <div className="card-base overflow-hidden">
+          <div className="card-base overflow-hidden overflow-x-auto">
             <table className="table-base">
               <thead>
                 <tr>

@@ -49,10 +49,10 @@ const TaskDetailSection = ({ task, userRole }: Props) => {
           <span className="truncate max-w-48">{task.title}</span>
         </div>
 
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3">
-              <h1 className="text-xl font-semibold text-(--color-text-900)">
+            <div className="flex flex-wrap items-center gap-1 sm:gap-3 mb-2 sm:mb-0">
+              <h1 className="order-2 text-xl font-semibold text-(--color-text-900)">
                 {task.title}
               </h1>
 

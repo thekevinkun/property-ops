@@ -9,3 +9,4 @@ export { default as TaskDetailSection } from "./TaskDetailSection";
 export { default as TaskNewSection } from "./TaskNewSection";
 export { default as AuditLogSection } from "./AuditLogSection";
 export { default as UsersSection } from "./UsersSection";
+export { default as DashboardShell } from "./DashboardShell";
